@@ -5,9 +5,16 @@ Core RAG engine for the car chatbot using local embeddings and LLM.
 
 import chromadb
 from sentence_transformers import SentenceTransformer
-from langchain_community.llms import Ollama
 from typing import Dict, List, Any, Optional
 import os
+
+# Optional langchain import for Ollama support
+try:
+    from langchain_community.llms import Ollama
+    HAS_LANGCHAIN = True
+except ImportError:
+    HAS_LANGCHAIN = False
+    Ollama = None
 
 
 class LocalEmbeddings:
@@ -99,7 +106,7 @@ class CarChatbotEngine:
     
     def _initialize_llm(self):
         """Initialize local LLM (Ollama)"""
-        if self.use_ollama:
+        if self.use_ollama and HAS_LANGCHAIN:
             try:
                 self.llm = Ollama(model=self.ollama_model)
                 print(f"✅ Using Ollama ({self.ollama_model}) for LLM")
@@ -108,7 +115,10 @@ class CarChatbotEngine:
                 print("   Falling back to simple response mode")
                 self.llm = None
         else:
-            print("⚠️ Ollama disabled, using simple response mode")
+            if not HAS_LANGCHAIN:
+                print("⚠️ Langchain not installed, using simple response mode")
+            else:
+                print("⚠️ Ollama disabled, using simple response mode")
             self.llm = None
     
     def _setup_system_prompt(self):
