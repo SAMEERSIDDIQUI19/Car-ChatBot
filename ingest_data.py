@@ -35,18 +35,19 @@ def ingest_data():
     # Initialize ChromaDB client
     client = chromadb.PersistentClient(path=db_path)
     
-    # Delete existing collection if it exists
+    # Try to get existing collection or create new one
     try:
-        client.delete_collection(name="cars")
-        print("🗑️ Deleted existing collection")
+        collection = client.get_collection(name="cars")
+        print("📝 Found existing collection, will add to it")
+        # Clear existing data
+        collection.delete(where={})
+        print("🗑️ Cleared existing data from collection")
     except:
-        pass
-    
-    # Create new collection
-    collection = client.create_collection(
-        name="cars",
-        metadata={"description": "Car specifications database"}
-    )
+        print("📝 No existing collection found, creating new one")
+        collection = client.create_collection(
+            name="cars",
+            metadata={"description": "Car specifications database"}
+        )
     
     # Generate embeddings for all documents
     print("🔢 Generating embeddings...")
