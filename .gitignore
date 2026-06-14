@@ -363,11 +363,13 @@ MigrationBackup/
 FodyWeavers.xsd
 
 model/
-data/
-data/chroma_db/
+# data/ and data/chroma_db/ removed - needed for Streamlit Cloud deployment
+# data/
+# data/chroma_db/
 *.safetensors
 *.bin
 *.sqlite3
-Cars Datasets 2025.csv
+# Cars Datasets 2025.csv removed - needed for Streamlit Cloud deployment
+# Cars Datasets 2025.csv
 training_data.jsonl
 .env
