@@ -1,3 +1,15 @@
+---
+title: AI Car Chatbot
+emoji: 🚗
+colorFrom: indigo
+colorTo: purple
+sdk: streamlit
+sdk_version: 1.28.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # 🚗 AI Car Chatbot - Local RAG-Powered Automotive Assistant
 
 An intelligent car assistant powered by Retrieval-Augmented Generation (RAG) that answers questions about 1,218+ car specifications with 100% factual accuracy from the datasheet. **100% local and open-source - no external APIs required.**
