@@ -4,8 +4,11 @@ pandas>=2.0.0
 python-dotenv>=1.0.0
 
 # RAG & Embeddings (Local)
-chromadb>=0.4.0
+chromadb>=0.4.0,<0.5.0
 sentence-transformers>=2.2.0
+
+# Fix protobuf version conflict (required for ChromaDB)
+protobuf>=3.20.0,<4.0.0
 
 # LLM (Local - Optional)
 langchain>=0.1.0
