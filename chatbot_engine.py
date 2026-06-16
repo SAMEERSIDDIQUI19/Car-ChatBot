@@ -300,26 +300,127 @@ Answer:"""
                 query_embeddings=[query_embedding],
                 n_results=n_results
             )
-            
-            # Filter results to only include cars from the specified brand
-            filtered_docs = []
-            filtered_metas = []
-            filtered_dists = []
-            
-            for i, (doc, metadata, dist) in enumerate(zip(results['documents'][0], results['metadatas'][0], results['distances'][0])):
-                company = metadata.get('company', '').lower()
-                if brand.lower() in company:
-                    filtered_docs.append(doc)
-                    filtered_metas.append(metadata)
-                    filtered_dists.append(dist)
-            
-            # Add filtered results to all_results
-            for doc, meta, dist in zip(filtered_docs, filtered_metas, filtered_dists):
-                all_results['documents'][0].append(doc)
-                all_results['metadatas'][0].append(meta)
-                all_results['distances'][0].append(dist)
+            all_results['documents'][0].extend(results['documents'][0])
+            all_results['metadatas'][0].extend(results['metadatas'][0])
+            all_results['distances'][0].extend(results['distances'][0])
         
         return all_results
+    
+    def query_by_company(self, company: str, n_results: int = 5) -> Dict[str, Any]:
+        """
+        Query cars by company name
+        
+        Args:
+            company: Company name to search for
+            n_results: Number of results to return
+            
+        Returns:
+            Dictionary containing answer and source documents
+        """
+        try:
+            # Generate embedding for company name
+            query_embedding = self.embeddings.embed_query(company)
+            
+            # Query ChromaDB
+            results = self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=n_results
+            )
+            
+            # Filter results to only include cars from the specified company
+            metadatas = results['metadatas'][0] if isinstance(results['metadatas'], list) else results['metadatas']
+            documents = results['documents'][0]
+            
+            filtered_docs = []
+            filtered_metas = []
+            
+            company_lower = company.lower()
+            for doc, meta in zip(documents, metadatas):
+                car_company = meta.get('company', '').lower()
+                if company_lower in car_company or car_company in company_lower:
+                    filtered_docs.append(doc)
+                    filtered_metas.append(meta)
+            
+            # Format source documents
+            source_documents = []
+            for doc, metadata in zip(filtered_docs, filtered_metas):
+                source_documents.append({
+                    "page_content": doc,
+                    "metadata": metadata
+                })
+            
+            return {
+                "answer": "",  # Will be formatted by caller
+                "source_documents": source_documents,
+                "num_results": len(filtered_docs),
+                "metadatas": filtered_metas
+            }
+            
+        except Exception as e:
+            return {
+                "answer": f"I encountered an error: {str(e)}",
+                "source_documents": [],
+                "num_results": 0,
+                "metadatas": []
+            }
+    
+    def get_random_cars(self, n_results: int = 5) -> Dict[str, Any]:
+        """
+        Get random cars from the database
+        
+        Args:
+            n_results: Number of random cars to return
+            
+        Returns:
+            Dictionary containing answer and source documents
+        """
+        try:
+            # Get all cars from collection
+            results = self.collection.get()
+            
+            if not results or not results['metadatas']:
+                return {
+                    "answer": "No cars available in database.",
+                    "source_documents": [],
+                    "num_results": 0,
+                    "metadatas": []
+                }
+            
+            # Randomly select n_results cars
+            import random
+            all_metas = results['metadatas']
+            all_docs = results['documents']
+            
+            if len(all_metas) <= n_results:
+                selected_indices = list(range(len(all_metas)))
+            else:
+                selected_indices = random.sample(range(len(all_metas)), n_results)
+            
+            filtered_metas = [all_metas[i] for i in selected_indices]
+            filtered_docs = [all_docs[i] for i in selected_indices]
+            
+            # Format source documents
+            source_documents = []
+            for doc, metadata in zip(filtered_docs, filtered_metas):
+                source_documents.append({
+                    "page_content": doc,
+                    "metadata": metadata
+                })
+            
+            return {
+                "answer": "",  # Will be formatted by caller
+                "source_documents": source_documents,
+                "num_results": len(filtered_docs),
+                "metadatas": filtered_metas
+            }
+            
+        except Exception as e:
+            return {
+                "answer": f"I encountered an error: {str(e)}",
+                "source_documents": [],
+                "num_results": 0,
+                "metadatas": []
+            }
     
     def _generate_simple_response(self, results: Dict, question: str) -> str:
         """

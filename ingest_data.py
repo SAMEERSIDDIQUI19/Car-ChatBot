@@ -42,8 +42,9 @@ def ingest_data():
         # Clear existing data
         collection.delete(where={})
         print("🗑️ Cleared existing data from collection")
-    except:
-        print("📝 No existing collection found, creating new one")
+    except Exception as e:
+        print(f"📝 No existing collection found or error: {e}")
+        print("📝 Creating new collection")
         collection = client.create_collection(
             name="cars",
             metadata={"description": "Car specifications database"}
